@@ -35,14 +35,17 @@
      (!= x ?y)
      (not-membero x ?r)))
 
-(run 1 [q]
-     (fresh [w x
-             y z]
-            (== q [[w x]
-                   [y z]])
-            (infd w x y z (domain 1 2 3 4))
-            (everyg distinctfd [[w x] [y z]])
-            (everyg #(membero % [y z]) [w x])))
+(comment (run 5 [q]
+              (fresh [w x
+                      y z]
+                     (== q [[w x]
+                            [y z]])
+                     (infd w x y z (domain 1 2 3 4))
+                                        ;(everyg distinctfd [[w x] [y z]])
+                     ;;(everyg #(membero % [y z]) [w x])
+                     ;;(everyg distinctfd [[w y z] [x y z]])
+                     (everyg #(distinctfd (conj [y z] %)) [w x])
+                     )))
 
 (defn lineupfd [roster]
   (run-nc 1 [q]
@@ -66,8 +69,12 @@
                        q2 [q2a q2b q2c q2d q2e]
                        q3 [q3a q3b q3c q3d q3e]
                        q4 [q4a q4b q4c q4d q4e]]
-                   ;; player can't fill more than one position per quarter
-                   (everyg distinctfd [q1 q2 q3 q4]))
+                   (all
+                    ;; player can't fill more than one position per quarter
+                    (everyg distinctfd [q1 q2 q3 q4])
+                    ;; no one plays in consecutive quarters (excluding halftime)
+                    (everyg #(distinctfd (conj q2 %)) q1)
+                    (everyg #(distinctfd (conj q4 %)) q3)))
                  ;; no one plays goalie more than once
                  (distinctfd [q1e q2e q3e q4e])
                  ;; everyone plays more than one quarter (50% rule)
